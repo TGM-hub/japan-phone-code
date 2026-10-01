@@ -195,6 +195,11 @@ const EXCEPTIONS = [
  ["098 · Okinawa", "Okinawa était sous administration américaine lors de l'attribution des numéros. Elle a reçu après coup un créneau qui avait été réservé au Miyazaki — d'où 098 pour Naha et 0985 pour Miyazaki."],
  ["0776 / 0952 / 0985", "À trois chiffres ces aires se télescopent avec leurs voisines : Fukui se distingue d'Ōtsu (077), Saga de Nagasaki (095), Miyazaki d'Okinawa (098). Il faut le quatrième chiffre."]
 ];
+/* Landmarks for the block view: one per block, the cities anyone can place.
+   Knowing 03 is Tokyo and 092 is Fukuoka carries most of the system. */
+const ANCHOR_CODES = ["011","022","03","045","052","075","06","078","082","092","098"];
+const ANCHORS = ANCHOR_CODES.map(c => CODES.find(x => x.code === c)).filter(Boolean);
+
 const EXC_CODES = ["03","06","076","088","0776","0952","0985","059"];
 const excNote = c =>
   c.code === "03" || c.code === "06" ? EXCEPTIONS[0][1] :
@@ -452,6 +457,13 @@ function draw(){
       h += `<path d="${blockPath(k)}" fill="${BLOCK_COLOR[k]}" fill-opacity="${op}"
              stroke="${st}" stroke-width="${sw}" vector-effect="non-scaling-stroke"/>`;
     });
+    /* names while asking, code added on reveal — the pairing is what you are
+       building, so the names are the bridge rather than the answer */
+    ANCHORS.forEach(a => h += `<circle class="dot" cx="${a.lo}" cy="${-a.la}" r="${r}"/>`);
+    h += labelSvg(ANCHORS.slice().sort((a,b)=>b.la-a.la).map(a => ({
+      x: a.lo, y0: -a.la - MV.w/55,
+      t: (locked ? esc(a.code) + " " : "") + esc(a.kj) + " " + esc(a.ro)
+    })), +(fs*0.34), MV.w/7);
     if(locked){
       h += `<circle class="dot" cx="${t.lo}" cy="${-t.la}" r="${r*1.6}"/>`;
       h += `<text class="lbl" x="${t.lo}" y="${(-t.la - MV.w/40).toFixed(2)}" font-size="${fs*0.42}"
