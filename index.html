@@ -41,6 +41,8 @@ body{background:var(--ink);color:var(--text);font-family:'IBM Plex Sans',system-
  paint-order:stroke;stroke:var(--sea);stroke-width:3px;vector-effect:non-scaling-stroke}
 #mapsvg .lbl.mono{font-family:'IBM Plex Mono',monospace}
 #mapsvg .lbl.dark{fill:#12171C;stroke:rgba(255,255,255,.65);stroke-width:2.4px}
+#mapsvg .lbl.faint{fill:#9AA7B2;font-weight:400}
+#mapsvg .dot.other{fill:#6E7C88}
 #note .chip[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:#151B21}
 #note .exc{margin-top:7px}
 #mapsvg .dot{fill:var(--amber);stroke:var(--sea);stroke-width:.5;vector-effect:non-scaling-stroke}
@@ -488,7 +490,16 @@ function draw(){
     h += `</g>`;
     /* city names while asking, the number only on reveal — the pairing is the
        thing being learnt, so the names are the bridge, not the answer */
+    /* Landmarks from neighbouring blocks that fall in view, greyed out: zoomed
+       into Tōkai you still want Ōsaka and Tokyo on the edge to orient by. They
+       belong to other blocks, so they can never be the answer here. */
+    const near = ANCHORS.filter(a => a.blk !== b
+      && a.lo > MV.x && a.lo < MV.x + MV.w && -a.la > MV.y && -a.la < MV.y + MV.h);
+    near.forEach(a => h += `<circle class="dot other" cx="${a.lo}" cy="${-a.la}" r="${(r*0.8)}"/>`);
     codesOfBlock(b).forEach(c => h += `<circle class="dot" cx="${c.lo}" cy="${-c.la}" r="${r}"/>`);
+    h += labelSvg(near.slice().sort((a,z)=>z.la-a.la).map(a => ({
+      x: a.lo, y0: -a.la - MV.w/55, t: esc(a.kj) + " " + esc(a.ro)
+    })), +(fs*0.32), MV.w/7, "faint");
     h += labelSvg(codesOfBlock(b).slice().sort((a,z)=>z.la-a.la).map(c => ({
       x: c.lo, y0: -c.la - MV.w/50,
       t: (locked ? esc(c.code) + " " : "") + esc(c.kj) + " " + esc(c.ro)
